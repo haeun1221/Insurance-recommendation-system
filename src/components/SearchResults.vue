@@ -1,68 +1,47 @@
 <template>
-  <section class="results-section">
-    <h2 class="results-title">검색 결과</h2>
-
-    <div v-if="results.length > 0" class="results-container">
-      <div v-for="(result, index) in results" :key="result.id" class="result-item">
-        <div class="result-left">
-          <div class="result-icon">
-            <span class="icon-circle" :style="{ backgroundColor: getIconColor(index) }"></span>
-          </div>
-          <div class="result-info">
-            <h3 class="result-insurer">{{ result.insurer }}</h3>
-            <p class="result-product">{{ result.product }}</p>
-          </div>
-        </div>
-
-        <div class="result-right">
-          <div class="compatibility">
-            <span class="compatibility-label">적합성</span>
-            <span class="compatibility-value">{{ result.compatibility }}%</span>
-          </div>
-          <button class="expand-button" @click="toggleExpand(result.id)">
-            {{ expandedIds.includes(result.id) ? '접기' : '펼쳐보기' }}
-          </button>
-        </div>
-      </div>
-
-      <!-- 펼쳐진 상세 정보 -->
-      <transition-group name="expand" tag="div">
-        <div
-            v-for="result in results"
-            v-show="expandedIds.includes(result.id)"
-            :key="`details-${result.id}`"
-            class="result-details"
-        >
-          <div class="details-content">
-            <h4>상품 상세 정보</h4>
-            <ul class="details-list">
-              <li>보험료: 월 5만원 대</li>
-              <li>갱신주기: 매년</li>
-              <li>최대 보장액: 5억원</li>
-              <li>보장기간: 80세</li>
-            </ul>
-          </div>
-        </div>
-      </transition-group>
+  <div class="search-results">
+    <div class="results-header">
+      <h3 class="results-title">검색 결과</h3>
+      <p class="results-count">{{ results.length }}개 상품</p>
     </div>
 
-    <div v-else class="no-results">
-      <p>검색 결과가 없습니다.</p>
-      <p class="no-results-subtitle">필터를 조정하여 다시 시도해보세요.</p>
+    <div class="results-list">
+      <div class="result-item" v-for="(item, index) in paginatedResults" :key="item.id">
+        <div class="result-number">{{ startIndex + index + 1 }}</div>
+        <div class="result-content">
+          <h4 class="result-product">{{ item.insurer }}</h4>
+          <p class="result-insurer">{{ item.product }}</p>
+        </div>
+        <div class="result-compatibility">
+          <span class="compatibility-value">적합성 {{ item.compatibility }}%</span>
+          <router-link to="/ai-guide" class="expand-button">펼쳐보기</router-link>
+        </div>
+      </div>
     </div>
 
     <!-- 페이지네이션 -->
-    <div v-if="results.length > 0" class="pagination">
+    <div class="pagination">
       <button
-          v-for="page in totalPages"
-          :key="page"
-          :class="['pagination-button', { active: currentPage === page }]"
-          @click="currentPage = page"
+          class="pagination-button"
+          :disabled="currentPage === 1"
+          @click="currentPage--"
       >
-        {{ page }}
+        이전
+      </button>
+
+      <div class="pagination-info">
+        {{ currentPage }} / {{ totalPages }}
+      </div>
+
+      <button
+          class="pagination-button"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+      >
+        다음
       </button>
     </div>
-  </section>
+  </div>
 </template>
 
 <script>
@@ -71,300 +50,228 @@ export default {
   props: {
     results: {
       type: Array,
-      default: () => [],
+      required: true,
     },
   },
   data() {
     return {
-      expandedIds: [],
       currentPage: 1,
-      itemsPerPage: 7,
+      itemsPerPage: 5,
     };
   },
   computed: {
     totalPages() {
       return Math.ceil(this.results.length / this.itemsPerPage);
     },
-  },
-  methods: {
-    toggleExpand(resultId) {
-      const index = this.expandedIds.indexOf(resultId);
-      if (index > -1) {
-        this.expandedIds.splice(index, 1);
-      } else {
-        this.expandedIds.push(resultId);
-      }
+    startIndex() {
+      return (this.currentPage - 1) * this.itemsPerPage;
     },
-    getIconColor(index) {
-      const colors = ['#c0c0c0', '#a9a9a9', '#808080', '#696969'];
-      return colors[index % colors.length];
+    paginatedResults() {
+      const end = this.startIndex + this.itemsPerPage;
+      return this.results.slice(this.startIndex, end);
     },
   },
 };
 </script>
 
 <style scoped>
-.results-section {
+.search-results {
+  width: 100%;
+  min-width: 0;
   background-color: white;
-  border-radius: 12px;
-  padding: 2rem;
+  border-radius: clamp(6px, 1vw, 12px);
+  padding: clamp(1.3rem, 2.5vw, 2.5rem) clamp(2.5rem, 5vw, 5rem);
+  padding-top: clamp(1.95rem, 3.15vw, 3.15rem);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 1rem);
+  flex-wrap: wrap;
 }
 
 .results-title {
-  font-size: 1.2rem;
+  font-size: clamp(1.05rem, 2.15vw, 1.25rem);
   font-weight: 600;
   color: #333;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  margin: 0;
 }
 
-.results-container {
+.results-count {
+  font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+  font-size: clamp(0.78rem, 1.48vw, 0.93rem);
+  color: #333;
+  font-weight: 650;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.results-list {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: clamp(0.45rem, 1vw, 0.6rem);
 }
 
 .result-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.2s ease;
-}
-
-.result-item:last-of-type {
-  border-bottom: none;
-}
-
-.result-item:hover {
-  background-color: #fafafa;
-}
-
-.result-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
+  width: 100%;
   min-width: 0;
+  display: grid;
+  grid-template-columns: clamp(30px, 5vw, 40px) 1fr 1fr;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1.1rem, 1.6vw, 1.3rem);
+  border: 1px solid #eee;
+  border-radius: clamp(4px, 0.8vw, 6px);
+  align-items: center;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
 }
 
-.result-icon {
+.result-number {
+  width: clamp(30px, 5vw, 40px);
+  height: clamp(30px, 5vw, 40px);
+  border-radius: 50%;
+  background-color: #0066ff;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 600;
   flex-shrink: 0;
+  grid-column: 1;
+  grid-row: 1 / 3;
 }
 
-.icon-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-}
-
-.result-info {
+.result-content {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
+  gap: clamp(0.08rem, 0.25vw, 0.13rem);
+  grid-column: 2;
+  grid-row: 1 / 3;
 }
 
 .result-insurer {
-  font-size: 0.95rem;
+  font-size: clamp(0.83rem, 1.48vw, 1.03rem);
   font-weight: 600;
   color: #333;
   margin: 0;
 }
 
 .result-product {
-  font-size: 0.85rem;
-  color: #999;
+  font-size: clamp(0.35rem, 0.8vw, 0.8rem);
+  font-weight: 500;
+  color: #666;
   margin: 0;
 }
 
-.result-right {
+.result-compatibility {
+  width: 100%;
+  min-width: 0;
   display: flex;
+  gap: clamp(1.15rem, 2.3vw, 2.3rem);
   align-items: center;
-  gap: 1.5rem;
-  flex-shrink: 0;
-  margin-left: 1rem;
-}
-
-.compatibility {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.compatibility-label {
-  font-size: 0.8rem;
-  color: #999;
+  justify-content: flex-end;
+  grid-column: 3;
+  grid-row: 1 / 3;
 }
 
 .compatibility-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #666;
-}
-
-.expand-button {
-  background: none;
-  border: none;
+  font-size: clamp(0.73rem, 1.47vw, 0.97rem);
+  font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+  font-weight: 650;
   color: #0066ff;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: underline;
-  transition: color 0.2s ease;
   white-space: nowrap;
 }
 
+.expand-button {
+  padding: clamp(0.39rem, 0.79vw, 0.59rem) clamp(0.65rem, 1.4vw, 0.95rem);
+  background-color: #0066ff;
+  color: white;
+  border: none;
+  border-radius: clamp(4px, 0.8vw, 6px);
+  font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+  font-size: clamp(0.74rem, 1.19vw, 0.94rem);
+  font-weight: 400;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .expand-button:hover {
-  color: #0052cc;
+  background-color: #0052cc;
+  box-shadow: 0 2px 4px rgba(0, 102, 255, 0.2);
 }
 
-/* 상세 정보 */
-.result-details {
-  padding: 1rem 0 1rem 3.5rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin-top: 0.5rem;
+.compatibility-bar {
+  width: 100%;
+  height: clamp(4px, 0.8vw, 6px);
+  background-color: #e8e8e8;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.details-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.details-content h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.details-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.details-list li {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.details-list li::before {
-  content: '• ';
-  color: #0066ff;
-  margin-right: 0.5rem;
-}
-
-/* 검색 결과 없음 */
-.no-results {
-  text-align: center;
-  padding: 3rem 1rem;
-}
-
-.no-results p {
-  font-size: 1rem;
-  color: #666;
-  margin: 0;
-}
-
-.no-results-subtitle {
-  font-size: 0.9rem;
-  color: #999;
-  margin-top: 0.5rem;
+.compatibility-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0066ff 0%, #0052cc 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
 /* 페이지네이션 */
 .pagination {
+  width: 100%;
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  align-items: center;
+  gap: clamp(0.8rem, 1.5vw, 2rem);
+  margin-top: clamp(0.5rem, 1vw, 1rem);
+  flex-wrap: wrap;
 }
 
 .pagination-button {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 0.5rem;
   background-color: white;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.75rem, 1.5vw, 1rem);
+  border-radius: clamp(4px, 0.8vw, 6px);
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-weight: 600;
+  color: #333;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f9f9f9;
+  color: #333;
+  border-color: #0066ff;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: clamp(0.75rem, 1.2vw, 0.95rem);
   color: #666;
-}
-
-.pagination-button:hover {
-  border-color: #0066ff;
-  color: #0066ff;
-}
-
-.pagination-button.active {
-  background-color: #0066ff;
-  color: white;
-  border-color: #0066ff;
-}
-
-/* 애니메이션 */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease;
-}
-
-.expand-enter-from {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.expand-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-/* 반응형 디자인 */
-@media (max-width: 640px) {
-  .results-section {
-    padding: 1.5rem;
-  }
-
-  .result-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .result-right {
-    width: 100%;
-    margin-left: 0;
-    justify-content: space-between;
-  }
-
-  .expand-button {
-    white-space: normal;
-  }
-
-  .result-details {
-    margin-left: -3.5rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .results-section {
-    padding: 2.5rem;
-  }
+  font-weight: 600;
+  min-width: clamp(50px, 8vw, 80px);
+  text-align: center;
 }
 </style>

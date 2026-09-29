@@ -1,0 +1,201 @@
+.search-results {
+    width: 100%;
+    min-width: 0;
+    background-color: white;
+    border-radius: clamp(6px, 1vw, 12px);
+    padding: clamp(1rem, 2vw, 2rem);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    flex-wrap: wrap;
+}
+
+.results-title {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.results-count {
+    font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+    color: #0066ff;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.results-list {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.result-item {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: clamp(30px, 5vw, 40px) 1fr 1fr;
+    gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    padding: clamp(0.75rem, 1.5vw, 1rem);
+    border: 1px solid #eee;
+    border-radius: clamp(4px, 0.8vw, 6px);
+    align-items: center;
+    transition: all 0.2s ease;
+    flex-wrap: wrap;
+}
+
+.result-item:hover {
+    background-color: #f9f9f9;
+    border-color: #0066ff;
+}
+
+.result-number {
+    width: clamp(30px, 5vw, 40px);
+    height: clamp(30px, 5vw, 40px);
+    border-radius: 50%;
+    background-color: #0066ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    font-weight: 600;
+    flex-shrink: 0;
+    grid-column: 1;
+    grid-row: 1 / 3;
+}
+
+.result-content {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.15rem, 0.32vw, 0.2rem);
+    grid-column: 2;
+    grid-row: 1 / 3;
+}
+
+.result-insurer {
+    font-size: clamp(0.85rem, 1.5vw, 1.05rem);
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.result-product {
+    font-size: clamp(0.4rem, 0.85vw, 0.85rem);
+    font-weight: 500;
+    color: #666;
+    margin: 0;
+}
+
+.result-compatibility {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+    align-items: center;
+    justify-content: flex-end;
+    grid-column: 3;
+    grid-row: 1 / 3;
+}
+
+.compatibility-value {
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    font-weight: 700;
+    color: #0066ff;
+    white-space: nowrap;
+}
+
+.expand-button {
+    padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.75rem, 1.5vw, 1rem);
+    background-color: #0066ff;
+    color: white;
+    border: none;
+    border-radius: clamp(4px, 0.8vw, 6px);
+    font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.expand-button:hover {
+    background-color: #0052cc;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 102, 255, 0.2);
+}
+
+.compatibility-bar {
+    width: 100%;
+    height: clamp(4px, 0.8vw, 6px);
+    background-color: #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.compatibility-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0066ff 0%, #0052cc 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* 페이지네이션 */
+.pagination {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(0.8rem, 1.5vw, 2rem);
+    margin-top: clamp(0.5rem, 1vw, 1rem);
+    flex-wrap: wrap;
+}
+
+.pagination-button {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.75rem, 1.5vw, 1rem);
+    border-radius: clamp(4px, 0.8vw, 6px);
+    font-size: clamp(0.7rem, 1vw, 0.9rem);
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background-color: #0066ff;
+    color: white;
+    border-color: #0066ff;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+    color: #666;
+    font-weight: 600;
+    min-width: clamp(50px, 8vw, 80px);
+    text-align: center;
+}

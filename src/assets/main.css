@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Bo:On 브랜드 그라데이션 180도부터 시작 */
+    --boon-gradient: conic-gradient(
+            from 180deg at 50%, #0BC2FA 0deg, #00FFF7 91.73deg, #1F5BFF 162.69deg, #007BFF 271.73deg, #1D3A9A 360deg);
+    box-shadow: inset 0px -10px 30px rgba(0, 0, 0, 0.45);
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--boon-gradient);
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
