@@ -1,3 +1,4 @@
+<!-- 홈화면 -->
 <template>
   <div class="home-view">
     <div class="content-background"></div>
@@ -56,9 +57,9 @@ export default {
   display: flex;
   flex-direction: column;
   gap: clamp(0.25rem, 1.5vw, 1rem);
-  max-width: clamp(200px, 80vw, 700px);
-  margin-right: clamp(65px, 23vw, 250px);
-  margin-top: clamp(8px, 12vw, 130px);
+  max-width: clamp(12.5rem, 80vw, 43.75rem);
+  margin-right: clamp(4rem, 23vw, 15.6rem);
+  margin-top: clamp(0.5rem, 12vw, 8.1rem);
 }
 
 .main-title {
@@ -66,8 +67,8 @@ export default {
   font-weight: 700;
   font-family: Inter Bold, sans-serif;
   margin: 0;
-  letter-spacing: clamp(1px, 0.3vw, 3px);
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  letter-spacing: clamp(0.06rem, 0.3vw, 0.18rem);
+  text-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.2);
 }
 
 .subtitle-group {
@@ -78,10 +79,9 @@ export default {
 
 .main-subtitle {
   font-size: clamp(0.45rem, 2.15vw, 1.3rem);
-  margin: 0;
   font-weight: 500;
   line-height: 1.6;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.2);
   text-align: left;
   margin-left: clamp(0.22rem, 0.45vw, 0.4rem);
 }

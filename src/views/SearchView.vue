@@ -1,10 +1,11 @@
+<!-- 보험 검색 페이지 -->
 <template>
   <div class="search-view">
     <div class="content-wrapper">
       <!-- 필터 섹션 -->
       <div class="section-header">
-        <span class="breadcrumb">보험 둘러보기</span>
-        <h2 class="section-title">필요한 정보를 입력하고<br>관련 보험을 둘러볼 수 있어요</h2>
+        <span class="breadcrumb">맞춤 보험 추천</span>
+        <h2 class="section-title">내 조건에 가장 잘 맞는<br>최적의 보험 상품을 찾아 드려요</h2>
       </div>
 
       <div class="filter-card">
@@ -47,7 +48,7 @@
           </div>
         </div>
 
-        <!-- 필터 그룹 3: 생년월일 직접 입력 (년, 월, 일 분리) -->
+        <!-- 필터 그룹 3: 생년월일 직접 입력 -->
         <div class="filter-row">
           <label class="filter-label">생년월일</label>
           <div class="date-input-group">
@@ -70,88 +71,53 @@
         <button class="search-button" @click="handleQuickSearch">조회</button>
       </div>
 
-      <!-- 세부 보장 선호도 섹션 -->
+      <!-- 세부 보장 중요도 섹션 -->
       <div class="payout-section" v-if="showPayoutSection">
-        <h3 class="payout-title">목표 지급률</h3>
-
-        <!-- 지급률 슬라이더 -->
-        <div class="payout-group">
-          <div class="payout-slider-container">
-            <div class="slider-container">
-              <span class="slider-value-left">0%</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.payoutType / 100) }">
-                <input type="range" v-model.number="filters.payoutType" min="0" max="100" class="slider" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.payoutType, 0, 100, 18) }">{{ filters.payoutType }}%</div>
-              </div>
-              <span class="slider-value-right">100%</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 다중 슬라이더 그룹 -->
         <div class="multi-slider-header">
-          <h4 class="multi-slider-title">세부 보장 중요도</h4>
-          <p class="multi-slider-subtitle">총 10점을 5개 카테고리에 배분하세요 (최대 5점, 0.5점 단위)</p>
+          <h4 class="multi-slider-title">세부 보장 집중도</h4>
+          <p class="custom-conditions-subtitle">5개 카테고리에서 중요하다고 생각하는 보장 사항을 표시해주세요</p>
+          <p class="multi-slider-subtitle">
+            💡 {{ filters.insuranceAge }}세 {{ filters.gender || '고객' }} 통계 기준선 기본 배치
+          </p>
         </div>
 
         <div class="multi-slider-group">
-          <div class="slider-row">
-            <span class="slider-label-left">암</span>
-            <div class="slider-container">
-              <span class="slider-range-min">0</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.diagnosis / 5) }">
-                <input type="range" :value="filters.diagnosis" min="0" max="5" step="0.5" class="range-slider" @input="updateSlider('diagnosis', $event)" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.diagnosis, 0, 5, 16) }">{{ filters.diagnosis }}</div>
-              </div>
-              <span class="slider-range-max">5</span>
-            </div>
-          </div>
+          <!-- 반복문을 활용한 슬라이더 렌더링 -->
+          <div class="slider-row" v-for="item in sliderItems" :key="item.key">
 
-          <div class="slider-row">
-            <span class="slider-label-left">뇌 질환</span>
-            <div class="slider-container">
-              <span class="slider-range-min">0</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.treatment / 5) }">
-                <input type="range" :value="filters.treatment" min="0" max="5" step="0.5" class="range-slider" @input="updateSlider('treatment', $event)" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.treatment, 0, 5, 16) }">{{ filters.treatment }}</div>
-              </div>
-              <span class="slider-range-max">5</span>
-            </div>
-          </div>
+            <span class="slider-label-left">{{ item.label }}</span>
 
-          <div class="slider-row">
-            <span class="slider-label-left">심장 질환</span>
             <div class="slider-container">
-              <span class="slider-range-min">0</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.surgery / 5) }">
-                <input type="range" :value="filters.surgery" min="0" max="5" step="0.5" class="range-slider" @input="updateSlider('surgery', $event)" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.surgery, 0, 5, 16) }">{{ filters.surgery }}</div>
+              <span class="slider-range-min">1</span>
+              <div class="slider-track-wrapper" :style="{ '--slider-value': ((filters[item.key] - 1) / 9) }">
+                <input
+                    type="range"
+                    v-model.number="filters[item.key]"
+                    min="1" max="10" step="1"
+                    class="range-slider"
+                />
+                <!-- 18px -> 1.125rem 파라미터 전달 -->
+                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters[item.key], 1, 10, 1.125) }">
+                  {{ filters[item.key] }}
+                </div>
               </div>
-              <span class="slider-range-max">5</span>
+              <span class="slider-range-max">10</span>
             </div>
-          </div>
 
-          <div class="slider-row">
-            <span class="slider-label-left">상해</span>
-            <div class="slider-container">
-              <span class="slider-range-min">0</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.hospitalization / 5) }">
-                <input type="range" :value="filters.hospitalization" min="0" max="5" step="0.5" class="range-slider" @input="updateSlider('hospitalization', $event)" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.hospitalization, 0, 5, 16) }">{{ filters.hospitalization }}</div>
-              </div>
-              <span class="slider-range-max">5</span>
-            </div>
-          </div>
+            <!-- Grid 위치 맞춤용 빈 div -->
+            <div></div>
 
-          <div class="slider-row">
-            <span class="slider-label-left">입원비 / 수술비</span>
-            <div class="slider-container">
-              <span class="slider-range-min">0</span>
-              <div class="slider-track-wrapper" :style="{ '--slider-value': (filters.injury / 5) }">
-                <input type="range" :value="filters.injury" min="0" max="5" step="0.5" class="range-slider" @input="updateSlider('injury', $event)" />
-                <div class="slider-value-text" :style="{ left: getSliderValueLeft(filters.injury, 0, 5, 16) }">{{ filters.injury }}</div>
-              </div>
-              <span class="slider-range-max">5</span>
+            <!-- 통계 기준선 대비 등락 표시 UI -->
+            <div class="diff-indicator">
+              <span class="diff-arrow-icon">↳</span>
+              <span v-if="filters[item.key] === baselines[item.key]" class="diff-same">
+                기준선과 동일 ({{ baselines[item.key] }})</span>
+              <span v-else-if="filters[item.key] > baselines[item.key]" class="diff-up">
+                ▲ +{{ (filters[item.key] - baselines[item.key]) }} <span class="diff-base">(통계 기준선: {{ baselines[item.key] }})</span>
+              </span>
+              <span v-else class="diff-down">
+                ▼ {{ (filters[item.key] - baselines[item.key]) }} <span class="diff-base">(통계 기준선: {{ baselines[item.key] }})</span>
+              </span>
             </div>
           </div>
         </div>
@@ -159,16 +125,15 @@
         <!-- 개인 맞춤 조건 -->
         <div class="custom-conditions-section">
           <h4 class="custom-conditions-title">개인 맞춤 조건</h4>
-          <p class="custom-conditions-subtitle">추가 기저질환 또는 피하고 싶은 약관 입력</p>
+          <p class="custom-conditions-subtitle">직업, 추가 기저질환 또는 피하고 싶은 약관 입력</p>
           <textarea
               v-model="filters.customConditions"
               class="custom-conditions-input"
-              placeholder="예: 이륜차 운전중, 전이암 제외 약관 기피, 감액기간 최소화 희망 등"
+              placeholder="예 : 사무직, 이륜차 운전중, 전이암 제외 약관 기피, 감액기간 최소화 희망 등"
               rows="3"
           ></textarea>
         </div>
 
-        <!-- 검색 버튼 -->
         <router-link to="/ai-guide" class="search-button">검색</router-link>
       </div>
     </div>
@@ -186,42 +151,44 @@ export default {
         birthYear: null,
         birthMonth: null,
         birthDay: null,
-        insuranceAge: 0, // 백엔드에 넘겨줄 보험 나이
-        payoutType: 25,
-        diagnosis: 2,
-        treatment: 2,
-        surgery: 2,
-        hospitalization: 2,
-        injury: 2,
+        insuranceAge: 0,
+        diagnosis: 5,
+        treatment: 5,
+        surgery: 5,
+        hospitalization: 5,
+        injury: 5,
         customConditions: '',
       },
+      baselines: {
+        diagnosis: 5,
+        treatment: 5,
+        surgery: 5,
+        hospitalization: 5,
+        injury: 5
+      },
+      sliderItems: [
+        { key: 'diagnosis', label: '암' },
+        { key: 'treatment', label: '뇌 질환' },
+        { key: 'surgery', label: '심장 질환' },
+        { key: 'hospitalization', label: '상해' },
+        { key: 'injury', label: '입원비 / 수술비' }
+      ],
       showPayoutSection: false,
     };
   },
   methods: {
     handleQuickSearch() {
-      // 1. 년, 월, 일 모두 입력되었는지 확인
       if (!this.filters.birthYear || !this.filters.birthMonth || !this.filters.birthDay) {
         alert('생년월일을 모두 입력해주세요.');
         return;
       }
 
-      // 2. 입력된 값들이 유효한 숫자인지 간단히 검증
-      if (this.filters.birthMonth < 1 || this.filters.birthMonth > 12 || this.filters.birthDay < 1 || this.filters.birthDay > 31) {
-        alert('올바른 생년월일을 입력해주세요.');
-        return;
-      }
-
-      // 3. YYYY-MM-DD 형태의 문자열로 조립 (월, 일이 1자리일 경우 앞에 '0'을 붙임)
       const monthStr = String(this.filters.birthMonth).padStart(2, '0');
       const dayStr = String(this.filters.birthDay).padStart(2, '0');
       const birthDateString = `${this.filters.birthYear}-${monthStr}-${dayStr}`;
-
-      // 4. 보험 나이 연산 함수에 전달
       this.filters.insuranceAge = this.calculateInsuranceAge(birthDateString);
 
-      console.log('조립된 생년월일:', birthDateString);
-      console.log('계산된 보험 나이(상령일 기준):', this.filters.insuranceAge);
+      this.generateMockBaselines();
 
       this.showPayoutSection = true;
       this.$nextTick(() => {
@@ -232,53 +199,37 @@ export default {
       });
     },
 
-    // 보험 나이 계산 로직 (변경 없음)
+    generateMockBaselines() {
+      if (this.filters.gender === '여성' && this.filters.insuranceAge >= 40) {
+        this.baselines = { diagnosis: 6, treatment: 7, surgery: 1, hospitalization: 1, injury: 3 };
+      } else if (this.filters.gender === '남성') {
+        this.baselines = { diagnosis: 5, treatment: 5, surgery: 7, hospitalization: 8, injury: 5 };
+      } else {
+        this.baselines = { diagnosis: 4, treatment: 4, surgery: 4, hospitalization: 4, injury: 4 };
+      }
+
+      Object.keys(this.baselines).forEach(key => {
+        this.filters[key] = this.baselines[key];
+      });
+    },
+
     calculateInsuranceAge(birthDateString) {
       const today = new Date();
       const birth = new Date(birthDateString);
-
       let ageYears = today.getFullYear() - birth.getFullYear();
       let ageMonths = today.getMonth() - birth.getMonth();
       let ageDays = today.getDate() - birth.getDate();
 
-      if (ageDays < 0) {
-        ageMonths -= 1;
-      }
-
-      if (ageMonths < 0) {
-        ageYears -= 1;
-        ageMonths += 12;
-      }
-
-      if (ageMonths >= 6) {
-        return ageYears + 1;
-      }
-
-      return ageYears;
+      if (ageDays < 0) { ageMonths -= 1; }
+      if (ageMonths < 0) { ageYears -= 1; ageMonths += 12; }
+      return (ageMonths >= 6) ? ageYears + 1 : ageYears;
     },
 
-    getSliderValueLeft(value, min = 1, max = 10, thumbWidth = 16) {
+    // 픽셀(px) 대신 rem 연산으로 수정된 슬라이더 로직
+    getSliderValueLeft(value, min, max, thumbWidthRem) {
       const p = ((value - min) / (max - min)) * 100;
-      const h = thumbWidth / 2;
-      return `calc(${p}% + ${h - p * (thumbWidth / 100)}px)`;
-    },
-
-    updateSlider(key, event) {
-      const newValue = Number(event.target.value);
-      const multiSliderKeys = ['diagnosis', 'treatment', 'surgery', 'hospitalization', 'injury'];
-
-      const otherTotal = multiSliderKeys.reduce((sum, k) => {
-        return k === key ? sum : sum + this.filters[k];
-      }, 0);
-
-      const maxAllowed = Math.min(5, 10 - otherTotal);
-
-      if (newValue > maxAllowed) {
-        this.filters[key] = maxAllowed;
-        event.target.value = maxAllowed;
-      } else {
-        this.filters[key] = newValue;
-      }
+      const h = thumbWidthRem / 2;
+      return `calc(${p}% + ${h - p * (thumbWidthRem / 100)}rem)`;
     }
   },
 };
@@ -308,13 +259,13 @@ export default {
 .section-header {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.25rem, 0.5vw, 0.5rem);
+  gap: clamp(0.15rem, 0.35vw, 0.35rem);
 }
 
 .breadcrumb {
-  font-size: clamp(0.55rem, 1.4vw, 0.8rem);
+  font-size: clamp(0.53rem, 1.33vw, 0.83rem);
   color: #1F5BFF;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .section-title {
@@ -328,9 +279,9 @@ export default {
   width: 100%;
   min-width: 0;
   background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
+  border-radius: clamp(0.375rem, 1vw, 0.75rem);
   padding: clamp(1.3rem, 2.5vw, 2.5rem) clamp(2.5rem, 5vw, 5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: clamp(1.7rem, 2.5vw, 2.5rem);
@@ -344,15 +295,14 @@ export default {
 
 .filter-item {
   display: grid;
-  grid-template-columns: clamp(60px, 15vw, 100px) 1fr;
+  grid-template-columns: clamp(3.75rem, 15vw, 6.25rem) 1fr;
   gap: clamp(0.75rem, 1.5vw, 1rem);
   align-items: center;
 }
 
-/* 라벨과 입력 폼을 가로 중앙에 나란히 정렬 */
 .filter-row {
   display: grid;
-  grid-template-columns: clamp(60px, 15vw, 100px) 1fr;
+  grid-template-columns: clamp(3.75rem, 15vw, 6.25rem) 1fr;
   gap: clamp(1rem, 2vw, 1.5rem);
   align-items: center;
 }
@@ -378,8 +328,8 @@ export default {
 }
 
 .radio-input {
-  width: clamp(14px, 1.5vw, 16px);
-  height: clamp(14px, 1.5vw, 16px);
+  width: clamp(0.875rem, 1.5vw, 1rem);
+  height: clamp(0.875rem, 1.5vw, 1rem);
   cursor: pointer;
   accent-color: #0066ff;
 }
@@ -390,23 +340,22 @@ export default {
   color: #555;
 }
 
-/* === 날짜(생년월일) 다중 입력칸 CSS === */
 .date-input-group {
   display: flex;
   align-items: center;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem); /* 년, 월, 일 사이의 간격 */
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
 }
 
 .date-input-wrapper {
   display: flex;
   align-items: center;
-  gap: clamp(0.25rem, 0.5vw, 0.5rem); /* 인풋 박스와 텍스트('년', '월') 사이 간격 */
+  gap: clamp(0.25rem, 0.5vw, 0.5rem);
 }
 
 .date-input {
   padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.4rem, 0.8vw, 0.8rem);
-  border: 1px solid #ddd;
-  border-radius: clamp(4px, 0.8vw, 6px);
+  border: 0.0625rem solid #ddd;
+  border-radius: clamp(0.25rem, 0.8vw, 0.375rem);
   font-size: clamp(0.85rem, 1.2vw, 0.95rem);
   font-family: inherit;
   color: #333;
@@ -414,27 +363,26 @@ export default {
   transition: all 0.2s ease;
 }
 
-/* 각 인풋 박스의 너비 세부 조정 */
 .year-input {
-  width: clamp(70px, 9vw, 90px);
+  width: clamp(4.375rem, 9vw, 5.625rem);
 }
 
 .month-input, .day-input {
-  width: clamp(50px, 6vw, 70px);
+  width: clamp(3.125rem, 6vw, 4.375rem);
 }
 
 .date-input:focus {
   outline: none;
   border-color: #0066ff;
-  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
+  box-shadow: 0 0 0 0.125rem rgba(0, 102, 255, 0.1);
 }
 
-/* 크롬, 사파리 등에서 숫자 입력칸 옆에 생기는 화살표 숨기기 */
 .date-input::-webkit-outer-spin-button,
 .date-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
 .date-input[type=number] {
   -moz-appearance: textfield;
 }
@@ -444,9 +392,75 @@ export default {
   font-weight: 600;
   color: #333;
 }
-/* ======================== */
+
+.payout-section {
+  width: 100%;
+  min-width: 0;
+  background-color: white;
+  border-radius: clamp(0.375rem, 1vw, 0.75rem);
+  padding: clamp(1.3rem, 2.5vw, 2.5rem) clamp(2.5rem, 5vw, 5rem);
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+
+.multi-slider-header {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.6vw, 0.5rem);
+  margin-bottom: clamp(0.5rem, 1vw, 1rem);
+  align-items: flex-start;
+}
+
+.multi-slider-title {
+  font-size: clamp(1.07rem, 2.17vw, 1.27rem);
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.multi-slider-subtitle {
+  font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+  font-weight: 600;
+  color: #333;
+  padding-top: clamp(0.55rem, 0.75vw, 0.75rem);
+}
+
+.multi-slider-group {
+  background-color: white;
+  margin-top: clamp(-1.4rem, -1.5vw, -0.85rem);
+  padding: clamp(1.25rem, 1.95vw, 2.05rem) clamp(1.65rem, 2.35vw, 2.05rem);
+  padding-top: clamp(1.85rem, 2.45vw, 2.65rem);
+  border: 0.0625rem solid #eee;
+  border-radius: clamp(0.25rem, 0.8vw, 0.375rem);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 2vw, 2.5rem);
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: clamp(5rem, 15vw, 6.875rem) 1fr;
+  row-gap: 0.5rem;
+  column-gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: center;
+}
+
+.slider-label-left {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: clamp(0.95rem, 1vw, 1rem);
+  font-weight: 700;
+  color: #333;
+  text-align: left;
+  white-space: nowrap;
+}
 
 .slider-container {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: clamp(0.7rem, 1vw, 1rem);
@@ -460,14 +474,14 @@ export default {
   width: 100%;
 }
 
-.slider, .range-slider {
+.range-slider {
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
+  height: 0.375rem;
+  border-radius: 0.1875rem;
   background: linear-gradient(
       to right,
-      #0066ff 0%,
-      #0066ff calc(var(--slider-value) * 100%),
+      #5c5c5c 0%,
+      #5c5c5c calc(var(--slider-value) * 100%),
       #ddd calc(var(--slider-value) * 100%),
       #ddd 100%
   );
@@ -478,92 +492,83 @@ export default {
   z-index: 5;
 }
 
-.slider::-webkit-slider-thumb,
-.slider::-moz-range-thumb,
-.range-slider::-webkit-slider-thumb,
+/* Chrome, Safari, Edge 브라우저용 */
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background-color: #5c5c5c;
+  border: 0.125rem solid #5c5c5c;
+  cursor: pointer;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+/* Firefox 브라우저용 */
 .range-slider::-moz-range-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 50%;
-  background-color: white;
-  border: 2px solid #0066ff;
+  background-color: #5c5c5c;
+  border: 0.125rem solid #5c5c5c;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider-value-left,
-.slider-value-right {
-  font-size: clamp(0.7rem, 1.2vw, 0.85rem);
-  color: #666;
-  min-width: clamp(30px, 3vw, 40px);
-  text-align: center;
-  white-space: nowrap;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
 }
 
 .slider-value-text {
   position: absolute;
-  top: -34px;
+  top: -2.125rem;
   transform: translateX(-50%);
-  color: #0066ff;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
+  color: #5c5c5c;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.85rem;
+  font-weight: 750;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
 }
 
-.payout-section {
-  width: 100%;
-  min-width: 0;
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(1.3rem, 2.5vw, 2.5rem) clamp(2.5rem, 5vw, 5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.payout-title {
-  text-align: center;
-  font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
-  font-size: clamp(1.1rem, 2.2vw, 1.3rem);
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-  padding-top: clamp(0.2rem, 0.4vw, 0.45rem);
-  padding-bottom: clamp(1.2rem, 2.4vw, 1.4rem);
-}
-
-.payout-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.4rem, 0.8vw, 0.75rem);
-}
-
-.payout-slider-container {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(0.75rem, 1.5vw, 1rem);
-  align-items: center;
-}
-
 .slider-range-min,
 .slider-range-max {
   font-size: clamp(0.7rem, 1.1vw, 0.85rem);
-  color: #999;
-  font-weight: 600;
+  color: #9f9f9f;
+  font-weight: 650;
   flex-shrink: 0;
 }
 
+.diff-indicator {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ↳ 기호의 높이만 따로 조절 */
+.diff-arrow-icon {
+  position: relative;
+  top: -0.1rem; /* 이 값을 음수(-)로 주면 위로 올라가고, 양수(+)로 주면 아래로 내려갑니다 */
+  color: #474747;
+}
+.diff-same { color: #474747; padding-left: 0.25rem; }
+.diff-up { color: #ef0007; padding-left: 0.25rem; }
+.diff-down { color: #1F5BFF; padding-left: 0.25rem; }
+
+.diff-base {
+  color: #474747;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
 .custom-conditions-section {
-  margin-top: clamp(1rem, 1.2vw, 1.1rem);
+  margin-top: clamp(0.7rem, 1vw, 0.9rem);
   margin-bottom: clamp(0.85rem, 1vw, 0.95rem);
   width: 100%;
   display: flex;
@@ -584,15 +589,16 @@ export default {
   color: #999;
   margin: 0;
   font-weight: 500;
+  padding-top: clamp(-0.45rem, 0.5vw, -0.35rem);
 }
 
 .custom-conditions-input {
   width: 100%;
   padding: clamp(0.6rem, 1.2vw, 0.9rem);
-  border: 1px solid #ddd;
-  border-radius: clamp(4px, 0.8vw, 6px);
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-  font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+  border: 0.0625rem solid #ddd;
+  border-radius: clamp(0.25rem, 0.8vw, 0.375rem);
+  font-size: clamp(0.7rem, 1.15vw, 0.85rem);
+  font-family: inherit;
   font-weight: 450;
   color: #333;
   resize: vertical;
@@ -602,58 +608,7 @@ export default {
 .custom-conditions-input:focus {
   outline: none;
   border-color: #168CFD;
-  box-shadow: 0 0 0 2px rgba(22, 140, 253, 0.1);
-}
-
-.multi-slider-header {
-  margin-top: clamp(1rem, 1.2vw, 1.1rem);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.3rem, 0.6vw, 0.5rem);
-  margin-bottom: clamp(0.5rem, 1vw, 1rem);
-}
-
-.multi-slider-title {
-  font-size: clamp(1.07rem, 2.17vw, 1.27rem);
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.multi-slider-subtitle {
-  font-size: clamp(0.7rem, 1.1vw, 0.85rem);
-  color: #999;
-  margin-top: clamp(0.07rem, 0.4vw, 0.15rem);
-  font-weight: 500;
-}
-
-.multi-slider-group {
-  background-color: white;
-  margin-top: clamp(-1.4rem, -1.5vw, -0.85rem);
-  padding: clamp(1.25rem, 1.95vw, 2.05rem) clamp(1.65rem, 2.35vw, 2.05rem);
-  padding-top: clamp(1.85rem, 2.45vw, 2.65rem);
-  border: 1px solid #eee;
-  border-radius: clamp(4px, 0.8vw, 6px);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.3rem, 1.7vw, 2.2rem);
-}
-
-.slider-row {
-  width: 100%;
-  display: grid;
-  grid-template-columns: clamp(60px, 15vw, 100px) 1fr;
-  align-items: center;
-  gap: clamp(2.23rem, 4.43vw, 3.53rem);
-}
-
-.slider-label-left {
-  font-size: clamp(0.95rem, 1vw, 1rem);
-  font-weight: 600;
-  color: #333;
-  text-align: left;
-  white-space: nowrap;
+  box-shadow: 0 0 0 0.125rem rgba(22, 140, 253, 0.1);
 }
 
 .search-button {
@@ -662,7 +617,7 @@ export default {
   border: none;
   padding: clamp(0.48rem, 1.18vw, 0.68rem) clamp(0.6rem, 1.5vw, 1.5rem);
   margin: clamp(0.25rem, 0.9vw, 0.1rem) 0;
-  border-radius: clamp(4px, 0.8vw, 6px);
+  border-radius: clamp(0.25rem, 0.8vw, 0.375rem);
   font-family: inherit;
   font-size: clamp(1rem, 1.7vw, 1.05rem);
   font-weight: 450;
@@ -674,9 +629,5 @@ export default {
 
 .search-button:hover {
   background-color: #0052cc;
-}
-
-.search-button:active {
-  background-color: #0043a3;
 }
 </style>

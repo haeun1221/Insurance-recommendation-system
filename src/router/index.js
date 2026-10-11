@@ -2,8 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
 import AIGuideView from '../views/AIGuideView.vue'
-import AnalysisView from '../views/AnalysisView.vue'
+import RecentView from '../views/RecentView.vue'
 import FavoritesView from '../views/FavoritesView.vue'
+import CoverageView from "@/views/CoverageView.vue";
+import ToxicView from "@/views/ToxicView.vue";
+import PriceView from "@/views/PriceView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,11 +27,6 @@ const router = createRouter({
       component: AIGuideView,
     },
     {
-      path: '/analysis',
-      name: 'analysis',
-      component: AnalysisView,
-    },
-    {
       path: '/favorites',
       name: 'favorites',
       component: FavoritesView,
@@ -36,17 +34,22 @@ const router = createRouter({
     {
       path: '/recent',
       name: 'recent',
-      component: AnalysisView,
+      component: RecentView,
     },
     {
-      path: '/mypage',
-      name: 'mypage',
-      component: HomeView,
+      path: '/coverage-details',
+      name: 'coverage-details',
+      component: CoverageView,
     },
     {
-      path: '/login',
-      name: 'login',
-      component: HomeView,
+      path: '/toxic-details',
+      name: 'toxic-details',
+      component: ToxicView,
+    },
+    {
+      path: '/price-compare',
+      name: 'price-compare',
+      component: PriceView,
     },
   ],
   scrollBehavior(to, from, savedPosition) {

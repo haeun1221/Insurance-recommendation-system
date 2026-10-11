@@ -1,3 +1,4 @@
+<!-- 로딩 화면 -->
 <template>
   <div class="loading-screen">
     <div class="loading-container">

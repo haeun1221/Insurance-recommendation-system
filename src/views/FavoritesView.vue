@@ -1,99 +1,112 @@
+<!-- 즐겨찾기 페이지 (디자인 안 바꾼 버전) -->
 <template>
   <div class="favorites-view">
     <div class="content-wrapper">
-      <!-- 헤더 -->
-      <div class="favorites-header">
-        <h1 class="favorites-title">즐겨찾기</h1>
-        <p class="favorites-subtitle">관심있는 보험 상품을 관리해보세요</p>
+
+      <!-- 1. 헤더 영역 -->
+      <div class="section-header">
+        <span class="breadcrumb">즐겨찾기</span>
+        <h2 class="section-title">즐겨찾기한 보험 목록과<br>검색했던 조건을 확인해 보세요</h2>
       </div>
 
-      <!-- 탭 네비게이션 -->
-      <div class="tab-navigation">
-        <button
-            class="tab-button"
-            :class="{ active: activeTab === 'overview' }"
-            @click="activeTab = 'overview'"
+      <!-- 2. 즐겨찾기 카드 리스트 -->
+      <div class="favorite-list" v-if="favoriteList.length > 0">
+        <div
+            v-for="item in favoriteList"
+            :key="item.id"
+            class="favorite-card"
         >
-          한눈에 보기
-        </button>
-        <button
-            class="tab-button"
-            :class="{ active: activeTab === 'comparison' }"
-            @click="activeTab = 'comparison'"
-        >
-          항목 비교하기
-        </button>
-      </div>
+          <!-- 카드 상단: 보험 핵심 정보 -->
+          <div class="card-main-row">
+            <!-- 즐겨찾기 버튼 -->
+            <button
+                class="favorite-btn is-active"
+                @click="toggleFavorite(item)"
+                title="즐겨찾기 해제"
+            >
+              <svg viewBox="0 0 24 24" class="bookmark-icon">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
 
-      <!-- 탭 1: 한눈에 보기 -->
-      <div v-if="activeTab === 'overview'" class="tab-content">
-        <!-- 요약 카드 -->
-        <div class="summary-cards">
-          <div class="summary-card" v-for="i in 4" :key="i">
-            <div class="card-number">{{ i }}</div>
-            <p class="card-text">항목{{ i }}</p>
-          </div>
-        </div>
-
-        <!-- 보장내용 테이블 -->
-        <div class="table-section">
-          <h3 class="table-title">보장내용</h3>
-          <div class="overview-table">
-            <div class="table-header">
-              <div class="table-cell">항목</div>
-              <div class="table-cell" v-for="i in 5" :key="i">보험사 {{ String.fromCharCode(64 + i) }}</div>
+            <!-- 보험 이름 -->
+            <div class="insurance-info-group">
+              <span class="company-badge">{{ item.company }}</span>
+              <h3 class="insurance-name" :title="item.name">{{ item.name }}</h3>
             </div>
-            <div class="table-row" v-for="j in 5" :key="j">
-              <div class="table-cell">항목 {{ j }}</div>
-              <div class="table-cell" v-for="i in 5" :key="i">
-                <input type="checkbox" class="table-checkbox" />
+
+            <!-- 월 보험료 -->
+            <div class="price-box">
+              <span class="label-small">월 보험료</span>
+              <span class="price-value">{{ item.premium.toLocaleString() }}원</span>
+            </div>
+
+            <!-- 보장 수 -->
+            <div class="count-box">
+              <span class="label-small">보장 수</span>
+              <router-link to="/coverage-details" class="table-link">
+                {{ item.coverageCount }}개
+              </router-link>
+            </div>
+
+            <!-- 독소조항 수 -->
+            <div class="count-box">
+              <span class="label-small">독소조항 수</span>
+              <router-link to="/toxic-details" class="table-link text-danger">
+                {{ item.toxicCount }}개
+              </router-link>
+            </div>
+          </div>
+
+          <!-- 입력 정보 영역 -->
+          <div class="search-criteria-section">
+            <div class="info-grid">
+              <!-- 기본 정보 -->
+              <div class="info-row">
+                <span class="section-label">기본 정보</span>
+                <div class="info-content">
+                  <span class="info-badge">{{ item.searchCriteria.gender }}</span>
+                  <span class="info-badge">{{ item.searchCriteria.birth }}</span>
+                  <span class="info-badge">{{ item.searchCriteria.renewal }}</span>
+                </div>
+              </div>
+
+              <!-- 보장 중요도 -->
+              <div class="info-row">
+                <span class="section-label">보장 중요도</span>
+                <div class="info-content">
+                  <div
+                      v-for="(priority, index) in item.searchCriteria.priorities"
+                      :key="index"
+                      class="priority-tag"
+                  >
+                    <span class="info-badge">
+                      {{ priority.name }} <span class="priority-score">{{ priority.score }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 맞춤 조건 -->
+              <div class="info-row">
+                <span class="section-label">맞춤 조건</span>
+                <div class="info-content">
+                  <div class="condition-box">
+                    "{{ item.searchCriteria.conditions }}"
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 항목 드롭다운 -->
-        <div class="dropdown-section">
-          <button class="dropdown-button" @click="showDetails = !showDetails">
-            펼쳐보기
-          </button>
-          <div v-if="showDetails" class="dropdown-content">
-            <div class="insurance-list">
-              <div class="insurance-item" v-for="item in favoritesList" :key="item.id">
-                <span class="insurance-name">{{ item.insurer }} - {{ item.product }}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- 탭 2: 항목 비교하기 -->
-      <div v-if="activeTab === 'comparison'" class="tab-content">
-        <!-- 요약 카드 -->
-        <div class="summary-cards">
-          <div class="summary-card" v-for="i in 4" :key="i">
-            <div class="card-number">{{ i }}</div>
-            <p class="card-text">보험{{ i }}</p>
-          </div>
-        </div>
-
-        <!-- 비교 추가 버튼 -->
-        <button class="add-comparison-button">+ 비교 추가</button>
-
-        <!-- 비교 분석 테이블 -->
-        <div class="comparison-analysis">
-          <div class="comparison-table">
-            <div class="table-header">
-              <div class="table-cell">분류</div>
-              <div class="table-cell" v-for="i in 4" :key="i">상품 {{ i }}</div>
-            </div>
-            <div class="table-row" v-for="j in 6" :key="j">
-              <div class="table-cell">항목 {{ j }}</div>
-              <div class="table-cell" v-for="i in 4" :key="i"></div>
-            </div>
-          </div>
-        </div>
+      <!-- 즐겨찾기 항목이 없을 경우 -->
+      <div class="empty-state" v-else>
+        <p>즐겨찾기한 보험이 없습니다. 보험을 검색하여 추가해 보세요</p>
       </div>
+
     </div>
   </div>
 </template>
@@ -103,292 +116,298 @@ export default {
   name: 'FavoritesView',
   data() {
     return {
-      activeTab: 'overview',
-      showDetails: false,
-      favoritesList: [
-        { id: 1, insurer: 'A 보험사', product: '의료보험 1' },
-        { id: 2, insurer: 'B 보험사', product: '의료보험 2' },
-        { id: 3, insurer: 'C 보험사', product: '실손보험' },
-        { id: 4, insurer: 'D 보험사', product: '암보험' },
-        { id: 5, insurer: 'E 보험사', product: '골절보험' },
-      ],
+      favoriteList: [
+        {
+          id: 3,
+          company: 'KB손해보험',
+          name: 'KB개인실손의료비보험',
+          premium: 28000,
+          coverageCount: 10,
+          toxicCount: 3,
+          searchCriteria: {
+            gender: '여성',
+            birth: '1995.08.15',
+            renewal: '비갱신형',
+            priorities: [
+              { name: '암', score: '2.5' },
+              { name: '입원/수술', score: '2.0' },
+              { name: '뇌 질환', score: '1.5' },
+              { name: '심장 질환', score: '2.0' },
+              { name: '상해', score: '2' }
+            ],
+            conditions: '서비스직, 가족력이 있어서 암 보장이 탄탄했으면 좋겠고, 월 납입금은 5만원 이내로 원해요.'
+          }
+        },
+        {
+          id: 1,
+          company: 'DB손해보험',
+          name: '무배당 프로미라이프 간편실손의료비보험(유병력자용)2604(TM)(만기재가입용)',
+          premium: 35000,
+          coverageCount: 12,
+          toxicCount: 2,
+          searchCriteria: {
+            gender: '남성',
+            birth: '1990.02.20',
+            renewal: '갱신형',
+            priorities: [
+              { name: '상해', score: '3.0' },
+              { name: '입원/수술', score: '2.0' },
+              { name: '암', score: '2.0' },
+              { name: '뇌 질환', score: '2.0' },
+              { name: '심장 질환', score: '1.0'}
+            ],
+            conditions: '직업은 공무원, 최근 병원 방문 이력이 있어서 유병자 보험 위주로 찾아보고 싶고, 일상생활 중 다치는 것에 대한 대비가 필요합니다.'
+          }
+        }
+      ]
     };
   },
+  methods: {
+    toggleFavorite(item) {
+      const index = this.favoriteList.findIndex(f => f.id === item.id);
+      if (index !== -1) {
+        this.favoriteList.splice(index, 1);
+      }
+    }
+  }
 };
 </script>
 
 <style scoped>
 .favorites-view {
   width: 100%;
-  min-width: 0;
+  min-height: 100vh;
   background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
 }
 
 .content-wrapper {
   width: 100%;
-  min-width: 0;
-  padding: clamp(1rem, 3vw, 3rem) clamp(0.5rem, 2vw, 2rem);
+  flex: 1;
+  padding: clamp(3rem, 4.5vw, 4.5rem) clamp(13rem, 15vw, 15rem);
   display: flex;
   flex-direction: column;
-  gap: clamp(1.5rem, 3vw, 2rem);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-/* 헤더 */
-.favorites-header {
+.section-header {
   display: flex;
   flex-direction: column;
   gap: clamp(0.25rem, 0.5vw, 0.5rem);
 }
 
-.favorites-title {
-  font-size: clamp(1.3rem, 3.5vw, 2rem);
+.breadcrumb {
+  font-size: clamp(0.55rem, 1.35vw, 0.85rem);
+  color: #1F5BFF;
+  font-weight: 550;
+}
+
+.section-title {
+  font-size: clamp(1.15rem, 2.95vw, 1.55rem);
   font-weight: 700;
   color: #333;
   margin: 0;
+  line-height: 1.45;
 }
 
-.favorites-subtitle {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: #666;
-  margin: 0;
-}
-
-/* 탭 네비게이션 */
-.tab-navigation {
+.favorite-list {
   display: flex;
-  gap: clamp(0.5rem, 1vw, 1rem);
-  border-bottom: 2px solid #e8e8e8;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: clamp(1rem, 1.5vw, 1.5rem);
 }
 
-.tab-button {
+.favorite-card {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: clamp(0.5rem, 1vw, 0.8rem);
+  padding: clamp(1.2rem, 2vw, 1.8rem) clamp(1.5rem, 2.5vw, 2.2rem);
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease-in-out;
+}
+
+.card-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.favorite-btn {
   background: none;
   border: none;
-  padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.5rem);
-  font-size: clamp(0.8rem, 1.3vw, 1rem);
-  font-weight: 600;
-  color: #999;
   cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  white-space: nowrap;
-}
-
-.tab-button.active {
-  color: #0066ff;
-  border-bottom-color: #0066ff;
-}
-
-.tab-button:hover {
-  color: #0066ff;
-}
-
-/* 탭 콘텐츠 */
-.tab-content {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.5rem, 3vw, 2rem);
-}
-
-/* 요약 카드 */
-.summary-cards {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 20vw, 180px), 1fr));
-  gap: clamp(0.75rem, 1.5vw, 1rem);
-}
-
-.summary-card {
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(0.75rem, 1.5vw, 1.5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1vw, 0.75rem);
-  text-align: center;
-}
-
-.card-number {
-  width: clamp(35px, 7vw, 45px);
-  height: clamp(35px, 7vw, 45px);
-  border-radius: 50%;
-  background-color: #0066ff;
-  color: white;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
-  font-weight: bold;
+  flex-shrink: 0;
+  outline: none;
+  transition: transform 0.2s ease;
 }
 
-.card-text {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: #666;
-  margin: 0;
+.favorite-btn:active {
+  transform: scale(0.9);
+}
+
+.bookmark-icon {
+  width: clamp(1.2rem, 1.5vw, 1.5rem);
+  height: clamp(1.5rem, 2.1vw, 2rem);
+  fill: #FFD700;
+  stroke: #FFD700;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.insurance-info-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.5vw, 0.5rem);
+  min-width: 0;
+}
+
+.company-badge {
+  font-size: clamp(0.75rem, 0.95vw, 0.85rem);
   font-weight: 500;
-}
-
-/* 테이블 */
-.table-section {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1rem);
-}
-
-.table-title {
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
-  font-weight: 600;
   color: #333;
-  margin: 0;
-}
-
-.overview-table,
-.comparison-table {
-  width: 100%;
-  min-width: 0;
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e8e8e8;
-  overflow-x: auto;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 1fr repeat(5, 1fr);
-  background-color: #f5f5f5;
-  border-bottom: 2px solid #ddd;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr repeat(5, 1fr);
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background-color: #f9f9f9;
-}
-
-.table-cell {
-  padding: clamp(0.6rem, 1.2vw, 1rem);
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  word-break: break-word;
-}
-
-.table-checkbox {
-  width: clamp(16px, 2vw, 18px);
-  height: clamp(16px, 2vw, 18px);
-  cursor: pointer;
-  accent-color: #0066ff;
-}
-
-/* 드롭다운 */
-.dropdown-section {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.5rem, 1vw, 0.75rem);
-}
-
-.dropdown-button {
-  background-color: white;
-  border: 1px solid #ddd;
-  padding: clamp(0.6rem, 1.2vw, 0.85rem) clamp(1rem, 2vw, 1.5rem);
-  border-radius: clamp(4px, 0.8vw, 6px);
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  font-weight: 600;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  align-self: flex-start;
-  white-space: nowrap;
-}
-
-.dropdown-button:hover {
-  background-color: #f5f5f5;
-  border-color: #0066ff;
-  color: #0066ff;
-}
-
-.dropdown-content {
-  width: 100%;
-  min-width: 0;
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(0.75rem, 1.5vw, 1.5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.insurance-list {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.5rem, 1vw, 0.75rem);
-}
-
-.insurance-item {
-  padding: clamp(0.5rem, 1vw, 0.75rem);
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: #666;
-  border-bottom: 1px solid #eee;
-}
-
-.insurance-item:last-child {
-  border-bottom: none;
 }
 
 .insurance-name {
-  display: block;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  font-weight: 700;
+  color: #222;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 비교 추가 버튼 */
-.add-comparison-button {
-  width: fit-content;
-  background-color: #e8e8e8;
-  border: 2px dashed #999;
-  padding: clamp(1rem, 2vw, 1.5rem);
-  border-radius: clamp(6px, 1vw, 12px);
-  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
-  font-weight: 600;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  align-self: center;
-}
-
-.add-comparison-button:hover {
-  background-color: #ddd;
-  border-color: #666;
-  color: #333;
-}
-
-/* 비교 분석 */
-.comparison-analysis {
-  width: 100%;
-  min-width: 0;
+.price-box, .count-box {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  align-items: center;
+  flex-shrink: 0;
+  min-width: clamp(4rem, 6vw, 6rem);
+}
+
+.label-small {
+  font-size: clamp(0.75rem, 0.95vw, 0.85rem);
+  color: #333;
+  font-weight: 500;
+  margin-bottom: clamp(0.3rem, 0.5vw, 0.5rem);
+}
+
+.price-value {
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  font-weight: 700;
+  color: #000;
+}
+
+.table-link {
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  text-decoration: underline;
+  font-weight: 650;
+  color: #1F5BFF;
+  cursor: pointer;
+}
+
+.table-link.text-danger {
+  color: #1F5BFF;
+}
+
+.table-link:hover { opacity: 0.7; }
+
+.search-criteria-section {
+  margin-top: clamp(1rem, 1.5vw, 1.2rem);
+  background-color: #f9f9f9;
+  padding: clamp(1rem, 1.5vw, 1.5rem);
+  margin-left: clamp(3.25rem, 3.45vw, 3.45rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.8rem, 1.2vw, 1.2rem);
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.8rem, 1.2vw, 1.2rem);
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1rem, 2vw, 2.5rem);
+}
+
+.section-label {
+  flex: 0 0 clamp(3rem, 4.5vw, 4.5rem);
+  font-size: clamp(0.75rem, 1vw, 0.85rem);
+  font-weight: 700;
+  color: #606060;
+  padding-top: clamp(0.2rem, 0.4vw, 0.4rem);
+  margin-left: clamp(0.7rem, 0.9vw, 0.9rem);
+}
+
+.info-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.3rem, 0.8vw, 0.6rem);
+  align-items: center;
+}
+
+.info-badge {
+  background-color: white;
+  color: #374151;
+  font-size: clamp(0.7rem, 1vw, 0.85rem);
+  font-weight: 650;
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.7rem, 1.1vw, 1.1rem);
+  border-radius: clamp(1.5rem, 1.7vw, 1.7rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.priority-tag {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  overflow: hidden;
+  border-radius: clamp(1.5rem, 1.7vw, 1.7rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.priority-score {
+  background-color: white;
+  color: #1F5BFF;
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  font-weight: 800;
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.3rem, 0.5vw, 0.5rem);
+  margin-right: clamp(-0.6rem, 0.6vw, -0.4rem);
+}
+
+.condition-box {
+  width: 100%;
+  background-color: white;
+  padding: clamp(0.5rem, 0.7vw, 0.7rem) clamp(0.8rem, 1.2vw, 1.2rem);
+  font-size: clamp(0.8rem, 1.1vw, 0.9rem);
+  color: #334155;
+  line-height: 1.5;
+  font-weight: 500;
+  border-radius: clamp(0.3rem, 0.5vw, 0.5rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.empty-state {
+  text-align: center;
+  font-size: clamp(0.8rem, 1.05vw, 0.95rem);
+  font-weight: 600;
+  color: #777;
+  background-color: white;
+  border-radius: clamp(0.5rem, 1.5vw, 1rem);
+  padding: clamp(1.5rem, 3.2vw, 2.7rem) clamp(2rem, 4.5vw, 4.5rem);
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
 }
 </style>

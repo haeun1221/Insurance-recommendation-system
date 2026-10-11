@@ -1,364 +1,413 @@
+<!-- 최근 검색 조회 페이지 -->
 <template>
-  <div class="analysis-view">
+  <div class="recent-view">
     <div class="content-wrapper">
-      <!-- 헤더 -->
-      <div class="analysis-header">
-        <h1 class="analysis-title">최근 조회 분석</h1>
-        <p class="analysis-subtitle">최근 본 보험 상품을 분석해드릴게요</p>
-      </div>
 
-      <!-- 상품 요약 -->
-      <div class="summary-section">
-        <div class="summary-cards">
-          <div class="summary-card">
-            <div class="card-icon">1</div>
-            <h3 class="card-title">조회한 상품</h3>
-            <p class="card-value">15개</p>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">2</div>
-            <h3 class="card-title">평균 호환도</h3>
-            <p class="card-value">67%</p>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">3</div>
-            <h3 class="card-title">추천 상품</h3>
-            <p class="card-value">5개</p>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">4</div>
-            <h3 class="card-title">최고 호환도</h3>
-            <p class="card-value">87%</p>
-          </div>
+      <!-- 1. 헤더 영역 -->
+      <div class="header-row">
+        <div class="section-header">
+          <span class="breadcrumb">최근 조회 내역</span>
+          <h2 class="section-title">이전에 조회했던 분석 결과를<br>다시 확인해 보세요</h2>
         </div>
+
+        <button
+            class="submit-btn"
+            :class="{ 'is-active': selectedId !== null }"
+            :disabled="selectedId === null"
+            @click="goToAnalysis"
+        >
+          열어보기
+        </button>
       </div>
 
-      <!-- 비교 테이블 -->
-      <div class="comparison-section">
-        <h2 class="section-title">상품 비교 분석</h2>
+      <!-- 2. 최근 조회 이력 카드 리스트 -->
+      <div class="history-list">
 
-        <div class="comparison-table">
-          <div class="table-header">
-            <div class="table-column">보험사</div>
-            <div class="table-column">상품명</div>
-            <div class="table-column">호환도</div>
-            <div class="table-column">가격</div>
-            <div class="table-column">평점</div>
-          </div>
+        <!-- 각 이력 카드 (라디오 버튼 역할) -->
+        <label
+            v-for="history in historyList"
+            :key="history.id"
+            class="history-card"
+            :class="{ 'is-selected': selectedId === history.id }"
+        >
+          <!-- 실제 라디오 버튼 (화면에서는 숨김) -->
+          <input
+              type="radio"
+              name="historySelect"
+              :value="history.id"
+              v-model="selectedId"
+              class="hidden-radio"
+          >
 
-          <div class="table-row" v-for="item in comparisonData" :key="item.id">
-            <div class="table-column">{{ item.insurer }}</div>
-            <div class="table-column">{{ item.product }}</div>
-            <div class="table-column">
-              <span class="compatibility-badge">{{ item.compatibility }}%</span>
+          <!-- 카드 상단: 날짜 및 선택 박스 -->
+          <div class="card-top">
+            <span class="history-date">{{ history.date }} 조회</span>
+
+            <!-- 사각형 박스로 묶인 텍스트 + 라디오 버튼 UI -->
+            <div class="select-box">
+              <span class="select-text">선택</span>
+              <div class="custom-radio-circle"></div>
             </div>
-            <div class="table-column">{{ item.price }}</div>
-            <div class="table-column">{{ item.rating }}</div>
           </div>
-        </div>
+
+          <!-- 카드 내용 (가로 배치 레이아웃) -->
+          <div class="info-grid">
+
+            <!-- 중단 1: 기본 정보 -->
+            <div class="info-row">
+              <span class="section-label">기본 정보</span>
+              <div class="info-content">
+                <span class="info-badge">{{ history.gender }}</span>
+                <span class="info-badge">{{ history.birth }}</span>
+                <span class="info-badge">{{ history.renewal }}</span>
+              </div>
+            </div>
+
+            <!-- 중단 2: 보장 중요도 -->
+            <div class="info-row">
+              <span class="section-label">보장 중요도</span>
+              <div class="info-content">
+                <div
+                    v-for="(priority, index) in history.priorities"
+                    :key="index"
+                    class="priority-tag"
+                >
+                  <span class="info-badge">{{ priority.name }}
+                    <span class="priority-score">{{ priority.score }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 하단: 개인 맞춤 조건 -->
+            <div class="info-row">
+              <span class="section-label">맞춤 조건</span>
+              <div class="info-content">
+                <div class="condition-box">
+                  "{{ history.conditions }}"
+                </div>
+              </div>
+            </div>
+          </div>
+        </label>
       </div>
 
-      <!-- 차트 섹션 -->
-      <div class="chart-section">
-        <h2 class="section-title">호환도 분포도</h2>
-        <div class="chart-placeholder">
-          <p>호환도 분포 차트가 표시될 영역</p>
-        </div>
-      </div>
-
-      <!-- 추천 섹션 -->
-      <div class="recommendation-section">
-        <h2 class="section-title">이 중에서 선택해보세요</h2>
-        <div class="recommendation-cards">
-          <div class="recommendation-card" v-for="i in 3" :key="i">
-            <div class="recommendation-badge">추천</div>
-            <h3 class="recommendation-title">상품명</h3>
-            <p class="recommendation-info">보험사 이름</p>
-            <button class="recommendation-button">상세 보기</button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AnalysisView',
+  name: 'RecentView',
   data() {
     return {
-      comparisonData: [
-        { id: 1, insurer: 'A 보험사', product: '의료보험 2', compatibility: 87, price: '12,000원', rating: 4.8 },
-        { id: 2, insurer: 'B 보험사', product: '의료보험 1', compatibility: 75, price: '10,500원', rating: 4.6 },
-        { id: 3, insurer: 'C 보험사', product: '의료보험 1', compatibility: 65, price: '9,800원', rating: 4.4 },
-        { id: 4, insurer: 'A 보험사', product: '의료보험 1', compatibility: 58, price: '8,900원', rating: 4.2 },
-        { id: 5, insurer: 'D 보험사', product: '의료보험 3', compatibility: 52, price: '11,200원', rating: 4.5 },
-      ],
+      selectedId: null,
+
+      historyList: [
+        {
+          id: 1,
+          date: '2026.10.04 14:30',
+          gender: '여성',
+          birth: '1995.08.15',
+          renewal: '비갱신형',
+          priorities: [
+            { name: '암', score: '2.5' },
+            { name: '입원/수술', score: '2.0' },
+            { name: '뇌 질환', score: '1.5' },
+            { name: '심장 질환', score: '1.0' },
+            { name: '상해', score: '1.0' }
+          ],
+          conditions: '가족력이 있어서 암 보장이 탄탄했으면 좋겠고, 월 납입금은 5만원 이내로 원해요.'
+        },
+        {
+          id: 2,
+          date: '2026.09.28 09:15',
+          gender: '남성',
+          birth: '1990.02.20',
+          renewal: '갱신형',
+          priorities: [
+            { name: '상해', score: '3.0' },
+            { name: '입원/수술', score: '2.0' },
+            { name: '암', score: '1.5' },
+            { name: '심장 질환', score: '1.0' },
+            { name: '뇌 질환', score: '0.5' }
+          ],
+          conditions: '최근 병원 방문 이력이 있어서 유병자 보험 위주로 찾아보고 싶고, 일상생활 중 다치는 것에 대한 대비가 필요합니다.'
+        }
+      ]
     };
   },
+  methods: {
+    goToAnalysis() {
+      if (this.selectedId !== null) {
+        this.$router.push('/ai-guide');
+      }
+    }
+  }
 };
 </script>
 
 <style scoped>
-.analysis-view {
+.recent-view {
   width: 100%;
-  min-width: 0;
+  min-height: 100vh;
   background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
 }
 
 .content-wrapper {
   width: 100%;
-  min-width: 0;
+  flex: 1;
   padding: clamp(3rem, 4.5vw, 4.5rem) clamp(13rem, 15vw, 15rem);
   display: flex;
   flex-direction: column;
-  gap: clamp(1.5rem, 3vw, 2rem);
+  gap: clamp(1.3rem, 2.8vw, 2.3rem);
 }
 
-/* 헤더 */
-.analysis-header {
+/* 1. 헤더 가로 배치 영역 */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.section-header {
   display: flex;
   flex-direction: column;
   gap: clamp(0.25rem, 0.5vw, 0.5rem);
 }
 
-.analysis-title {
-  font-size: clamp(1.3rem, 3.5vw, 2rem);
+.breadcrumb {
+  font-size: clamp(0.55rem, 1.35vw, 0.85rem);
+  color: #1F5BFF;
   font-weight: 700;
-  color: #333;
-  margin: 0;
 }
 
-.analysis-subtitle {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: #666;
-  margin: 0;
-}
-
-/* 요약 카드 */
-.summary-section {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.summary-cards {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(140px, 20vw, 240px), 1fr));
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.summary-card {
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(0.75rem, 1.5vw, 1.5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1vw, 1rem);
-  text-align: center;
-}
-
-.card-icon {
-  width: clamp(40px, 8vw, 50px);
-  height: clamp(40px, 8vw, 50px);
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0066ff 0%, #0052cc 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: bold;
-}
-
-.card-title {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.card-value {
-  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
-  font-weight: 700;
-  color: #0066ff;
-  margin: 0;
-}
-
-/* 섹션 제목 */
 .section-title {
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  font-weight: 600;
+  font-size: clamp(1.15rem, 2.95vw, 1.55rem);
+  font-weight: 700;
   color: #333;
-  margin: 0 0 clamp(0.75rem, 1.5vw, 1rem) 0;
-}
-
-/* 비교 테이블 */
-.comparison-section {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.comparison-table {
-  width: 100%;
-  min-width: 0;
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e8e8e8;
-  overflow-x: auto;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr;
-  background-color: #f5f5f5;
-  border-bottom: 2px solid #ddd;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr 1fr;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background-color: #f9f9f9;
-}
-
-.table-column {
-  padding: clamp(0.6rem, 1.2vw, 1rem);
-  font-size: clamp(0.7rem, 1vw, 0.9rem);
-  color: #666;
-  display: flex;
-  align-items: center;
-  word-break: break-word;
-}
-
-.compatibility-badge {
-  background-color: #e8f0ff;
-  color: #0066ff;
-  padding: clamp(0.25rem, 0.5vw, 0.5rem) clamp(0.5rem, 1vw, 0.75rem);
-  border-radius: clamp(3px, 0.5vw, 5px);
-  font-weight: 600;
-  font-size: clamp(0.65rem, 1vw, 0.85rem);
-  white-space: nowrap;
-}
-
-/* 차트 섹션 */
-.chart-section {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.chart-placeholder {
-  width: 100%;
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(2rem, 5vw, 4rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  text-align: center;
-  min-height: clamp(200px, 30vw, 300px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed #ddd;
-}
-
-.chart-placeholder p {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: #999;
   margin: 0;
+  line-height: 1.4;
 }
 
-/* 추천 섹션 */
-.recommendation-section {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
-}
-
-.recommendation-cards {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 22vw, 280px), 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem);
-}
-
-.recommendation-card {
-  background-color: white;
-  border-radius: clamp(6px, 1vw, 12px);
-  padding: clamp(1rem, 2vw, 1.5rem);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.5rem, 1vw, 0.75rem);
-  position: relative;
-  border: 1px solid #e8e8e8;
-}
-
-.recommendation-badge {
-  position: absolute;
-  top: clamp(0.5rem, 1vw, 0.75rem);
-  right: clamp(0.5rem, 1vw, 0.75rem);
-  background-color: #ff6b6b;
-  color: white;
-  padding: clamp(0.2rem, 0.4vw, 0.4rem) clamp(0.4rem, 0.8vw, 0.6rem);
-  border-radius: clamp(3px, 0.5vw, 5px);
-  font-size: clamp(0.65rem, 1vw, 0.8rem);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.recommendation-title {
-  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
-  font-weight: 600;
-  color: #333;
-  margin: clamp(0.75rem, 1.5vw, 1rem) 0 0 0;
-}
-
-.recommendation-info {
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-  color: #666;
-  margin: 0;
-}
-
-.recommendation-button {
-  background-color: #0066ff;
-  color: white;
+/* 열어보기 버튼 */
+.submit-btn {
+  padding: clamp(0.45rem, 0.65vw, 0.65rem) clamp(0.9rem, 1.5vw, 1.3rem);
+  font-size: clamp(0.9rem, 1vw, 1.05rem);
+  font-weight: 580;
   border: none;
-  padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.75rem, 1.5vw, 1rem);
-  border-radius: clamp(4px, 0.8vw, 6px);
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  align-self: flex-start;
-  margin-top: auto;
+  border-radius: clamp(0.3rem, 0.5vw, 0.4rem);
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transition: all 0.3s;
 }
 
-.recommendation-button:hover {
-  background-color: #0052cc;
+.submit-btn.is-active {
+  background-color: #1F5BFF;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 clamp(0.15rem, 0.3vw, 0.3rem) clamp(0.3rem, 0.6vw, 0.6rem) rgba(31, 91, 255, 0.25);
+}
+
+.submit-btn.is-active:hover {
+  background-color: #1a4cd9;
+}
+
+/* 2. 카드 리스트 영역 */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 1.5vw, 1.5rem);
+}
+
+/* 카드 기본 스타일 */
+.history-card {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: clamp(0.5rem, 1vw, 0.8rem);
+  padding: clamp(1.2rem, 2vw, 2rem) clamp(1.5rem, 2.5vw, 2.5rem);
+  border: clamp(0.12rem, 0.2vw, 0.15rem) solid #f1f1f1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.history-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.history-card.is-selected {
+  border-color: #1F5BFF;
+  background-color: #f4f8ff;
+  box-shadow: 0 4px 12px rgba(31, 91, 255, 0.1);
+}
+
+.hidden-radio {
+  display: none;
+}
+
+/* 카드 상단 (날짜 및 선택 박스) */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: clamp(0.06rem, 0.1vw, 0.12rem) solid #f0f0f0;
+  padding-bottom: clamp(0.8rem, 1.2vw, 1rem);
+  margin-bottom: clamp(1rem, 1.5vw, 1.5rem);
+}
+
+.history-date {
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-weight: 700;
+  color: #444;
+}
+
+/* 선택을 명확히 보여주는 사각형 박스 UI */
+.select-box {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 0.6vw, 0.8rem);
+  padding: clamp(0.4rem, 0.6vw, 0.5rem) clamp(0.8rem, 1vw, 1.2rem);
+  border: clamp(0.06rem, 0.1vw, 0.12rem) solid #d1d5db;
+  border-radius: clamp(0.3rem, 0.5vw, 0.5rem);
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.select-text {
+  font-size: clamp(0.8rem, 1vw, 0.9rem);
+  font-weight: 700;
+  color: #666;
+}
+
+.custom-radio-circle {
+  width: clamp(1rem, 1.5vw, 1.2rem);
+  height: clamp(1rem, 1.5vw, 1.2rem);
+  border-radius: 50%;
+  border: clamp(0.12rem, 0.2vw, 0.15rem) solid #d1d5db;
+  background-color: white;
+  transition: all 0.2s;
+  position: relative;
+}
+
+/* 카드가 선택되었을 때의 박스 & 버튼 상태 */
+.history-card.is-selected .select-box {
+  border-color: #1F5BFF;
+  background-color: #1F5BFF;
+}
+
+.history-card.is-selected .select-text {
+  color: white;
+}
+
+.history-card.is-selected .custom-radio-circle {
+  border-color: white;
+  background-color: #1F5BFF;
+}
+
+.history-card.is-selected .custom-radio-circle::after {
+  content: '';
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 30%;
+  height: 55%;
+  border-bottom: clamp(0.12rem, 0.2vw, 0.15rem) solid white;
+  border-right: clamp(0.12rem, 0.2vw, 0.15rem) solid white;
+}
+
+/* 카드 내부 가로 배치 레이아웃 (Grid) */
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.8rem, 1.2vw, 1.2rem);
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1rem, 2vw, 2.5rem);
+}
+
+.section-label {
+  flex: 0 0 clamp(4.5rem, 6vw, 6rem);
+  font-size: clamp(0.8rem, 1.1vw, 0.9rem);
+  font-weight: 700;
+  color: #474747;
+  padding-top: clamp(0.2rem, 0.4vw, 0.4rem);
+}
+
+.info-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1vw, 0.8rem);
+  align-items: center;
+}
+
+/* 기본 정보 뱃지 */
+.info-badge {
+  background-color: #f9f9f9;
+  color: #374151;
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-weight: 650;
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.8rem, 1.2vw, 1.2rem);
+  border-radius: clamp(1.5rem, 1.7vw, 1.7rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.history-card.is-selected .info-badge, .priority-score {
+  background-color: white;
+}
+
+.history-card.is-selected .priority-score {
+  background-color: white;
+}
+
+/* 보장 중요도 태그 */
+.priority-tag {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  overflow: hidden;
+  border-radius: clamp(1.5rem, 1.7vw, 1.7rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.priority-score {
+  background-color: #f9f9f9;
+  color: #1F5BFF;
+  font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+  font-weight: 800;
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.3rem, 0.5vw, 0.5rem);
+  padding-right: clamp(-0.4rem, 0.4vw, -0.2rem);
+}
+
+/* 개인 맞춤 조건 박스 */
+.condition-box {
+  width: 100%;
+  background-color: #f8fafc;
+  padding: clamp(0.5rem, 0.7vw, 0.7rem) clamp(0.8rem, 1.2vw, 1.2rem);
+  font-size: clamp(0.85rem, 1.1vw, 0.95rem);
+  color: #334155;
+  line-height: 1.5;
+  font-weight: 500;
+  border-radius: clamp(0.3rem, 0.5vw, 0.5rem);
+  border: clamp(0.06rem, 0.1vw, 0.1rem) solid #e5e7eb;
+}
+
+.history-card.is-selected .condition-box {
+  background-color: white;
+  border-color: #c7d2fe;
+  color: #1e293b;
+  font-weight: 600;
 }
 </style>
