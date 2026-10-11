@@ -109,7 +109,7 @@ export default {
 .content-wrapper {
   width: 100%;
   min-width: 0;
-  padding: clamp(1rem, 3vw, 3rem) clamp(0.5rem, 2vw, 2rem);
+  padding: clamp(3rem, 4.5vw, 4.5rem) clamp(13rem, 15vw, 15rem);
   display: flex;
   flex-direction: column;
   gap: clamp(1.5rem, 3vw, 2rem);
